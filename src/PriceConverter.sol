@@ -6,16 +6,15 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 
 library PriceConverter {
     // Function to convert a value based on the price
-    function getConversionRate(uint256 ethAmount) internal view returns (uint256) {
-      uint256 ethPrice = getLatestPrice();
+    function getConversionRate(uint256 ethAmount, AggregatorV3Interface priceFeed) internal view returns (uint256) {
+      uint256 ethPrice = getLatestPrice(priceFeed);
       uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1e18;
     
       return ethAmountInUsd;
     }
 
     // Function to get the price of Ethereum in USD
-    function getLatestPrice() public view returns (uint256) {
-      AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+    function getLatestPrice(AggregatorV3Interface priceFeed) public view returns (uint256) {
       (,int answer,,,) = priceFeed.latestRoundData();
       return uint(answer) * 1e10;
     }

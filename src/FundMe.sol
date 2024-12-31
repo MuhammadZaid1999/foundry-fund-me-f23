@@ -21,6 +21,8 @@ contract FundMe {
     // after immutable: execution cost	444 gas (Cost only applies when called by a contract)
     address immutable public i_owner;
 
+    AggregatorV3Interface private s_priceFeed;
+
     mapping(address => uint256) public addressToAmountFunded;
 
     modifier onlyOwner {
@@ -43,12 +45,17 @@ contract FundMe {
     }
 
 
-    constructor(){
+    constructor(address priceFeed){
       i_owner = msg.sender;
+      s_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
     function getVersion() public view returns (uint256) {
-      return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
+      // ----- we can also use this ------
+      // AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed);
+      // return priceFeed.version();
+
+      return AggregatorV3Interface(s_priceFeed).version();
     }
 
     function fund() public payable {
@@ -57,7 +64,7 @@ contract FundMe {
       // If additional arguments are needed, they are passed in parentheses:
       // uint256 result = msg.value.getConversionRate(123);
       // In this case, `123` is passed as the second `uint256` argument to the function.
-      require(msg.value.getConversionRate() >= MINIMUM_USD, "You need to spend more ETH!");
+      require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "You need to spend more ETH!");
    
       // a function revert will undo any actions that have been done.
       // It will send the remaining gas back
