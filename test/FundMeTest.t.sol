@@ -29,6 +29,11 @@ contract FundMeTest is Test{
 
     // ---------------------------------------------------------------
 
+    uint256 constant STARTING_BALANCE = 10 ether;
+    uint256 constant SEND_VALUE = 0.1 ether;
+
+    address alice = makeAddr("alice");
+
     FundMe fundMe;
     DeployFundMe deployFundMe;
 
@@ -38,6 +43,8 @@ contract FundMeTest is Test{
 
         deployFundMe = new DeployFundMe();
         fundMe = deployFundMe.run();
+
+        vm.deal(alice, STARTING_BALANCE);
     }
 
     function testMinimumDollarIsFive() public view {
@@ -73,4 +80,18 @@ contract FundMeTest is Test{
             assertEq(version, 4);
         }
     }
+
+    function testFundFailsWIthoutEnoughETH() public {
+        vm.expectRevert(); // <- The next line after this one should revert! If not test fails.
+        fundMe.fund();     // <- We send 0 value
+    }
+
+    function testFundUpdatesFundDataStructure() public { 
+        vm.prank(alice);
+        fundMe.fund{value: SEND_VALUE}();
+        
+        uint256 amountFunded = fundMe.getAddressToAmountFunded(alice);
+        assertEq(amountFunded, SEND_VALUE);
+    }
+
 }

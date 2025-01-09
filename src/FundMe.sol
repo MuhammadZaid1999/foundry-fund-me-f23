@@ -15,7 +15,7 @@ contract FundMe {
     // before constant: execution cost	2451 gas (Cost only applies when called by a contract)
     // after constant: execution cost	351 gas (Cost only applies when called by a contract)
     uint256 constant public MINIMUM_USD = 5e18;
-    address[] public funders;
+    address[] private s_funders;
 
     // before immutable: execution cost	2558 gas (Cost only applies when called by a contract) 
     // after immutable: execution cost	444 gas (Cost only applies when called by a contract)
@@ -23,7 +23,7 @@ contract FundMe {
 
     AggregatorV3Interface private s_priceFeed;
 
-    mapping(address => uint256) public addressToAmountFunded;
+    mapping(address => uint256) private s_addressToAmountFunded;
 
     modifier onlyOwner {
       // If the underscore `_` were placed before the `require` statement, 
@@ -68,23 +68,23 @@ contract FundMe {
    
       // a function revert will undo any actions that have been done.
       // It will send the remaining gas back
-      funders.push(msg.sender);
-      addressToAmountFunded[msg.sender] += msg.value;
+      s_funders.push(msg.sender);
+      s_addressToAmountFunded[msg.sender] += msg.value;
 
     }
 
     function withdraw() public onlyOwner{
       uint256 funderIndex;
-      for (funderIndex = 0; funderIndex < funders.length; funderIndex++) {
-        address funder = funders[funderIndex];
-        addressToAmountFunded[funder] = 0; 
+      for (funderIndex = 0; funderIndex < s_funders.length; funderIndex++) {
+        address funder = s_funders[funderIndex];
+        s_addressToAmountFunded[funder] = 0; 
 
         // resetting array of funder method1
         // funders[funderIndex] = address(0);
       }
 
       // resetting array of funder method1
-      funders = new address[](0);
+      s_funders = new address[](0);
 
       
       // Methods of Sending ETH through Contract 
@@ -105,6 +105,18 @@ contract FundMe {
       (bool success, ) = payable(msg.sender).call{value: address(this).balance}("");
       require(success, "Call failed");
     }
+
+    
+        /** Getter Functions */
+    
+    function getAddressToAmountFunded(address fundingAddress) public view returns (uint256) {
+      return s_addressToAmountFunded[fundingAddress];
+    }
+
+    function getFunder(uint256 index) public view returns (address) {
+      return s_funders[index];
+    }
+
 
 }
 
