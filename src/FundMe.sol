@@ -19,7 +19,7 @@ contract FundMe {
 
     // before immutable: execution cost	2558 gas (Cost only applies when called by a contract) 
     // after immutable: execution cost	444 gas (Cost only applies when called by a contract)
-    address immutable public i_owner;
+    address immutable private i_owner;
 
     AggregatorV3Interface private s_priceFeed;
 
@@ -117,6 +117,9 @@ contract FundMe {
       return s_funders[index];
     }
 
+    function getOwner() public view returns (address) {
+      return i_owner;
+    }
 
 }
 
