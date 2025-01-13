@@ -15,15 +15,17 @@ contract FundMe {
     // before constant: execution cost	2451 gas (Cost only applies when called by a contract)
     // after constant: execution cost	351 gas (Cost only applies when called by a contract)
     uint256 constant public MINIMUM_USD = 5e18;
-    address[] private s_funders;
 
     // before immutable: execution cost	2558 gas (Cost only applies when called by a contract) 
     // after immutable: execution cost	444 gas (Cost only applies when called by a contract)
     address immutable private i_owner;
 
+    address[] private s_funders;
+    
+    mapping(address => uint256) private s_addressToAmountFunded;
+
     AggregatorV3Interface private s_priceFeed;
 
-    mapping(address => uint256) private s_addressToAmountFunded;
 
     modifier onlyOwner {
       // If the underscore `_` were placed before the `require` statement, 
@@ -106,6 +108,18 @@ contract FundMe {
       require(success, "Call failed");
     }
 
+    function cheaperWithdraw() public onlyOwner {
+        uint256 fundersLength = s_funders.length;
+        for(uint256 funderIndex = 0; funderIndex < fundersLength; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToAmountFunded[funder] = 0;
+        }
+    
+        s_funders = new address[](0);
+        (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+    }
+
     
         /** Getter Functions */
     
@@ -119,6 +133,10 @@ contract FundMe {
 
     function getOwner() public view returns (address) {
       return i_owner;
+    }
+
+    function getPriceFeed() public view returns (AggregatorV3Interface) {
+      return s_priceFeed;
     }
 
 }
